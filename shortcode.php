@@ -3,14 +3,27 @@ include 'sendmail.php';
 
 add_shortcode( 'mf_contacts', 'mf_contacts');
 $message = false;
+$mf_post = mf::clean($_POST);
+
+
+function reset_post(){
+	global $mf_post;
+	foreach ($mf_post as $k=>$v){
+		$mf_post[$k] = "";
+	}
+}
+
 
 function mf_contacts(){
-	global $mf_plugin, $message;
+
+	global $mf_plugin, $message, $missed_body, $missed_email, $mf_post;
+
+
 	$contacts = $mf_plugin->fetch_table($mf_plugin->table_names[0]);
 	
 	if($_POST['mf_contact_form'] == 1){
-		fb::error($_POST,'post');
 		$sent = process_mail();
+		if($sent) reset_post();//clears form details
 		if($sent) : ?><div class="mail_message success">Message Sent</div><?php else: ?><div class="mail_message error">Sorry, message sending failed.</div><?php endif; ?>
 		
 			
@@ -23,7 +36,9 @@ function mf_contacts(){
 			<legend>Your message</legend> 
 		
 		
-		<textarea id="body" name="mf_body"></textarea>
+
+		<textarea <?php if($missed_body) echo "class='missed' "; ?> id="body" name="mf_body"><?php echo $mf_post['mf_body']?></textarea>
+
 		<?php if($contacts) : ?>
 			<fieldset>
 				<legend>What is your message about?</legend> 
@@ -40,8 +55,10 @@ function mf_contacts(){
 		
 		
 		<input type="hidden" name="mf_contact_form" value="1" />
-		<label for="name">Your name</label><input id="name" type="text" name="mf_name" />
-		<label for="email">Your email*</label><input id="email" type="text" name="mf_email" />
+		<label for="name">Your name</label><input id="name" type="text" name="mf_name" value="<?php echo $mf_post['mf_name']?>"/>
+
+		<label for="email">Your email*</label><input <?php if($missed_email) echo "class='missed' "; ?>id="email" type="text" name="mf_email" value="<?php echo $mf_post['mf_email']?>"/>
+
 		
 			
 		
@@ -53,18 +70,37 @@ function mf_contacts(){
 	<?php
 	
 }
+function validate_form(){
+	global $message, $missed_body, $missed_email, $mf_post;
+	
+	if($mf_post['mf_body'] == "") {
+		$message = "You have not told us your message";
+		$missed_body = true;
+	}
+	if($mf_post['mf_email'] == "") {
+		$message = ($missed_body ? $message." or " : "Please tell us ")."your email address";
+		$missed_email = true;
+
+		
+	}
+	if($missed_email || $missed_body){
+		return false;
+	}	
+	if(!preg_match('/^([0-9a-zA-Z]([-\.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/',$mf_post['mf_email'])){
+		$message = "Please include a valid email address";
+		$missed_email = true;
+	}
+	
+	return true;
+}
 
 function process_mail(){
-	global $message;
-	$post = mf::clean($_POST);
-	if($post['mf_question'] == "") $post['mf_question'] = get_bloginfo('admin_email');
-	if($post['mf_email'] == "" || $post['mf_body'] == "") {
-		$message = "Email and Message are required fields.";
-		return false;
-	}
-	$post['mf_body'] = "Name : ".$post['mf_name']."<br />Reply Address: ".$post['mf_email']."<div style='width: 100%; border-top: 1px solid #555555; margin: 14px 0;'></div>Message: <br />".$post['mf_body'];
-	return smtpmailer($post['mf_question'], $post['mf_email'], ($post['mf_name'] ? $post['mf_name'] : ""), "Website Feedback", $post['mf_body']);
+	global $mf_post;
+	if(!validate_form()) return false;
+	if(!$mf_post['mf_question'] ||$mf_post['mf_question'] == "") $mf_post['mf_question'] = get_bloginfo('admin_email');
+	$message = "Name : ".$mf_post['mf_name']."<br />Reply Address: ".$mf_post['mf_email']."<div style='width: 100%; border-top: 1px solid #555555; margin: 14px 0;'></div>Message: <br />".$mf_post['mf_body'];
 	
+	return smtpmailer($mf_post['mf_question'], $mf_post['mf_email'], ($mf_post['mf_name'] ? $mf_post['mf_name'] : ""), "Website Feedback", $message);	
 }
 
 ?>

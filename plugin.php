@@ -1,27 +1,12 @@
 <?php
 /*
-Plugin Name: Plugin Template
+Plugin Name: Multiflow Contacts
 Plugin URI: http://mildfuzz.com
-Description: A template to start plugins
+Description: A plugin for creating a contact form that easily reroutes the email form to relevant people through the use of sections.
 Version: 0.1
-Author: John Farrow
+Author: Mild Fuzz
 Author URI: http://mildfuzz.com
 License: GPL2
-*/
-
-
-/*  Copyright 2011  John Farrow  (email : john@mildfuzz.com)
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as 
-    published by the Free Software Foundation.
-
-    This code set is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-   
 */
 //load core classes
 include 'core_classes.php';

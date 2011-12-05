@@ -1,10 +1,10 @@
 <?php
 include 'sendmail.php';
 
-add_shortcode( 'mf_contacts', 'fetch_contact_form');
+add_shortcode( 'mf_contacts', 'mf_contacts');
 $message = false;
 
-function fetch_contact_form(){
+function mf_contacts(){
 	global $mf_plugin, $message;
 	$contacts = $mf_plugin->fetch_table($mf_plugin->table_names[0]);
 	
